@@ -135,6 +135,30 @@ perspective warp. Check the licence of each crate before it is added.
    the training data, the licences, the accuracy and the export command.
    Publish the crate. A PyPI wheel waits for the stretch goal.
 
+## Progress (2026-11-22)
+
+- Steps 1 to 5 are done, on the `rust` branch.
+- **Export:** the four models load in tract with the optimiser on. The
+  orientation model is trained on game records only, with no images, so
+  upstream's orientation weights carry no asset licence and stay in use.
+  existence is dropped: the quad mask gives "no board".
+- **Rust port:** on the 41 named test images, the Rust pipeline and the
+  Python reference both read 36 boards right (97.2 % of squares), with
+  upstream's weights. The Rust corner fit splits a closed contour at two
+  far points, as OpenCV does. A fit from the contour's first point gave
+  25 boards.
+- **Python reference:** its corner order was BL, TL, TR, BR, not TL, TR,
+  BR, BL. The rotation model hid the error. Both pipelines now use TL, TR,
+  BR, BL.
+- **Training speed:** one generated sample takes 0.2 to 0.9 s of CPU, so
+  on-the-fly training left the GPU idle (1.4 steps a second on an RTX 2060).
+  `cache.py` writes samples once on every core, and training reads them for
+  several epochs.
+- **Assets added:** plain and hatched two-tone boards drawn in code, and the
+  Cburnett pieces from Wikimedia Commons under BSD.
+- **Size:** with MobileNetV3, the float32 model set is about 64 MB. f16
+  weights are still to do.
+
 ## Revisit when
 
 - tract's declutter bug is fixed upstream. Then the `Linear` split is not
