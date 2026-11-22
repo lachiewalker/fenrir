@@ -1,5 +1,7 @@
 import datetime
 import os
+
+from src.cache import train_and_test
 import random
 
 import matplotlib
@@ -69,13 +71,17 @@ def train(
         print("Using CPU")
     print("Game:", spec.key)
 
-    train_set = dataset.GenerativeBoardDataset(
-        game=spec.key,
-        tile_size=tile_size,
-        augment_ratio=0.8,
-        affine_augment_ratio=0.8,
-    )
-    test_set = dataset.generate_fixed_test_set(game=spec.key, size=test_set_size, tile_size=tile_size)
+    cached = train_and_test("position")
+    if cached:
+        train_set, test_set = cached
+    else:
+        train_set = dataset.GenerativeBoardDataset(
+            game=spec.key,
+            tile_size=tile_size,
+            augment_ratio=0.8,
+            affine_augment_ratio=0.8,
+        )
+        test_set = dataset.generate_fixed_test_set(game=spec.key, size=test_set_size, tile_size=tile_size)
 
     def _worker_init_fn(worker_id):
         random.seed(torch.initial_seed() % 2**32)

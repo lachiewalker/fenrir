@@ -1,6 +1,8 @@
 import datetime
 import os
 
+from src.cache import train_and_test
+
 import matplotlib
 import torch
 import torch.nn.functional as F
@@ -107,7 +109,9 @@ def get_quad_metrics(test_data, model):
         for img, corners_flat, _mask in test_data:
             logits = model(img.unsqueeze(0).to(device))  # [1, 1, H, W]
             pred_mask = torch.sigmoid(logits).squeeze(0).squeeze(0).cpu()
-            pred_corners = mask_to_corners(pred_mask)
+            pred_corners = mask_to_corners(pred_mask.numpy())
+            if pred_corners is not None:
+                pred_corners = torch.from_numpy(pred_corners)
 
             target_px = corners_flat.reshape(4, 2) * img_size
 
@@ -144,11 +148,15 @@ def train(
     else:
         print("Using CPU")
 
-    train_set = dataset.GenerativeBboxDataset(
-        game=game,
-        augment_ratio=0.4,
-    )
-    test_set = dataset.generate_fixed_test_set(game=game, size=test_set_size)
+    cached = train_and_test("quad")
+    if cached:
+        train_set, test_set = cached
+    else:
+        train_set = dataset.GenerativeBboxDataset(
+            game=game,
+            augment_ratio=0.4,
+        )
+        test_set = dataset.generate_fixed_test_set(game=game, size=test_set_size)
 
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, drop_last=True,

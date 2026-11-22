@@ -1,6 +1,8 @@
 import datetime
 import os
 
+from src.cache import train_and_test
+
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -55,12 +57,16 @@ def train(
     else:
         print("Using CPU")
 
-    train_set = dataset.GenerativeRotationDataset(
-        game=game,
-        augment_ratio=0.8,
-        affine_augment_ratio=0.8,
-    )
-    test_set = dataset.generate_fixed_test_set(game=game, size=test_set_size)
+    cached = train_and_test("rotation")
+    if cached:
+        train_set, test_set = cached
+    else:
+        train_set = dataset.GenerativeRotationDataset(
+            game=game,
+            augment_ratio=0.8,
+            affine_augment_ratio=0.8,
+        )
+        test_set = dataset.generate_fixed_test_set(game=game, size=test_set_size)
 
     train_loader = torch.utils.data.DataLoader(
         train_set,
