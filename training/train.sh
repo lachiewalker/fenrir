@@ -6,7 +6,6 @@ set -e
 
 uv sync --extra cuda # potentially use `--extra rocm` instead
 
-[ ! -d resources/website_screenshots ] && ./download_website_screenshots.sh
 [ ! -d resources/pychess_games ] && ./download_pychess_games.sh
 
 games=(chess shogi xiangqi)

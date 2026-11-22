@@ -6,6 +6,7 @@ from PIL import Image, ImageOps
 from skimage.transform import ProjectiveTransform
 
 from src import common, consts
+from src.backgrounds import generate_background
 from src.fen_recognition.generate_chessboards import BoardGenerator
 
 MIN_CROP_SIZE = consts.BOARD_PIXEL_WIDTH + 10
@@ -90,7 +91,6 @@ class BboxGenerator:
     def __init__(
         self,
         game: str,
-        background_root_dir: str = "resources/website_screenshots",
         board_middleground_probability: float = 0.4,
         perspective_probability: float = 0.2,
         jitter_fraction: float = 0.03,
@@ -99,15 +99,6 @@ class BboxGenerator:
         self.board_middleground_probability = board_middleground_probability
         self.perspective_probability = perspective_probability
         self.jitter_fraction = jitter_fraction
-
-        background_root_dir = Path(background_root_dir)
-        assert background_root_dir.is_dir(), (
-            f"With background_root_dir = {background_root_dir}"
-        )
-        self.background_image_files = common.glob_all_image_files_recursively(
-            background_root_dir
-        )
-        assert len(self.background_image_files) > 0, "No background images found"
 
     def generate_one(self) -> tuple[Image.Image, list[tuple[float, float]]]:
         board_bg = self.board_generator.generate_board_background(
@@ -131,17 +122,9 @@ class BboxGenerator:
             return img, normalized_corners
 
         # Pick random background screenshot and crop
-        bg_path = random.choice(self.background_image_files)
-        img = Image.open(bg_path).convert("RGB")
-
-        img_width, img_height = img.size
-        max_size = min(img_width, img_height, MAX_CROP_SIZE)
-        crop_width = random.randint(MIN_CROP_SIZE, max_size)
-        crop_height = random.randint(MIN_CROP_SIZE, max_size)
-
-        x = random.randint(0, img_width - crop_width)
-        y = random.randint(0, img_height - crop_height)
-        img = img.crop((x, y, x + crop_width, y + crop_height))
+        crop_width = random.randint(MIN_CROP_SIZE, MAX_CROP_SIZE)
+        crop_height = random.randint(MIN_CROP_SIZE, MAX_CROP_SIZE)
+        img = generate_background(crop_width, crop_height)
 
         # Resize board (and its background) to fit within crop
         board_image_width, board_image_height = board_image.size
