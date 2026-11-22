@@ -71,13 +71,13 @@ def train(
     train_loader = torch.utils.data.DataLoader(
         train_set,
         batch_size=batch_size,
-        num_workers=8,
+        num_workers=int(os.environ.get("FENRIR_WORKERS", 4)),
         drop_last=True,
     )
     test_loader = torch.utils.data.DataLoader(
         test_set,
         batch_size=batch_size,
-        num_workers=8,
+        num_workers=int(os.environ.get("FENRIR_WORKERS", 4)),
         shuffle=False,
         drop_last=True,
     )

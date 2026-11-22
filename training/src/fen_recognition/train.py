@@ -88,7 +88,7 @@ def train(
 
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, drop_last=True,
-        num_workers=8, worker_init_fn=_worker_init_fn, persistent_workers=True,
+        num_workers=int(os.environ.get("FENRIR_WORKERS", 4)), worker_init_fn=_worker_init_fn, persistent_workers=True,
     )
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, drop_last=True)
 
