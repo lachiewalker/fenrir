@@ -9,8 +9,9 @@ FENrir reads a chess diagram in an image and returns its FEN. A diagram is a
 a page or a screen. [Plan 02](02-physical-board-recognition.md) covers
 photos of physical boards.
 
-FENrir is a Rust library with a CLI and Python bindings. Training stays in
-Python. Trained models are release assets, not part of the code.
+FENrir is a Rust library with a CLI. Training stays in Python. Trained
+models are release assets, not part of the code. Druidschess is the only
+consumer for now, so Rust comes first. Python bindings are a stretch goal.
 
 ## Where FENrir starts
 
@@ -93,8 +94,8 @@ compared the outputs with onnxruntime on the same input.
   models with tract, finds the corners, warps the board, and returns a FEN
   with a confidence for each square.
 - `crates/fenrir-cli`: `fenrir image.png` prints the FEN.
-- `python/`: PyO3 bindings, built with maturin. It publishes the `fenrir`
-  wheel on PyPI (the name is free on 2026-11-21).
+- `python/` (stretch goal): PyO3 bindings, built with maturin, for a
+  `fenrir` wheel on PyPI (the name is free on 2026-11-21).
 - `training/`: the Python training code (uv, PyTorch), the dataset
   generators, the export step, and the test-vector writer.
 - `models/`: a manifest of the released model files with SHA-256 sums.
@@ -132,7 +133,7 @@ perspective warp. Check the licence of each crate before it is added.
    under about 40 MB with f16 weights.
 7. **Release v1.** Publish the models as release assets with a model card:
    the training data, the licences, the accuracy and the export command.
-   Publish the crate and the PyPI wheel.
+   Publish the crate. A PyPI wheel waits for the stretch goal.
 
 ## Revisit when
 
