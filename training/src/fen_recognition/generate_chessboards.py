@@ -40,6 +40,56 @@ def _random_uniform_board(board_h: int, board_w: int) -> Image.Image:
     return Image.new("RGBA", (board_w, board_h), color)
 
 
+_CLASSIC_COLOURS = [
+    ((240, 217, 181), (181, 136, 99)),
+    ((238, 238, 210), (118, 150, 86)),
+    ((222, 227, 230), (140, 162, 173)),
+    ((255, 255, 255), (200, 200, 200)),
+    ((255, 255, 255), (160, 160, 160)),
+    ((250, 248, 240), (120, 120, 120)),
+]
+
+
+def _checker_board(board_h: int, board_w: int, hatched: bool) -> Image.Image:
+    """A two-tone board. Hatched boards draw the dark squares with lines, as
+    many books print them."""
+    if hatched:
+        light = (random.randint(225, 255),) * 3
+        dark = light if random.random() < 0.7 else (random.randint(170, 225),) * 3
+    elif random.random() < 0.6:
+        light, dark = random.choice(_CLASSIC_COLOURS)
+    else:
+        light = tuple(random.randint(150, 255) for _ in range(3))
+        dark = tuple(max(0, c - random.randint(40, 140)) for c in light)
+    img = Image.new("RGB", (board_w, board_h), light)
+    draw = ImageDraw.Draw(img)
+    sq_w, sq_h = board_w / 8, board_h / 8
+    ink = (random.randint(0, 90),) * 3
+    spacing = random.randint(3, 9)
+    width = random.choice([1, 1, 2])
+    slope = random.choice([1, -1])
+    for r in range(8):
+        for c in range(8):
+            if (r + c) % 2 == 0:
+                continue
+            x0, y0 = int(c * sq_w), int(r * sq_h)
+            x1, y1 = int((c + 1) * sq_w), int((r + 1) * sq_h)
+            draw.rectangle((x0, y0, x1 - 1, y1 - 1), fill=dark)
+            if hatched:
+                tile = Image.new("RGB", (x1 - x0, y1 - y0), dark)
+                tdraw = ImageDraw.Draw(tile)
+                size = (x1 - x0) + (y1 - y0)
+                for k in range(-size, size, spacing):
+                    if slope > 0:
+                        tdraw.line((k, 0, k + size, size), fill=ink, width=width)
+                    else:
+                        tdraw.line((k, size, k + size, 0), fill=ink, width=width)
+                img.paste(tile, (x0, y0))
+    if random.random() < 0.5:
+        draw.rectangle((0, 0, board_w - 1, board_h - 1), outline=ink, width=random.randint(1, 4))
+    return img.convert("RGBA")
+
+
 def _make_noise_generator() -> FastNoiseLite:
     noise = FastNoiseLite(seed=random.randint(0, 2**31 - 1))
 
@@ -593,9 +643,13 @@ class BoardGenerator:
         """Return a randomly styled board background (no pieces) at the given size."""
         theme_choice = random.choice(
             ["uniform", "noise_gray", "noise_color"]
-            + 6 * (["disk"] if self.disk_themes else [])
+            + 4 * ["checker"]
+            + 3 * ["hatched"]
+            + 4 * (["disk"] if self.disk_themes else [])
         )
-        if theme_choice == "uniform":
+        if theme_choice in ("checker", "hatched"):
+            bg = _checker_board(height, width, hatched=theme_choice == "hatched")
+        elif theme_choice == "uniform":
             bg = _random_uniform_board(height, width)
         elif theme_choice == "noise_gray":
             bg = _noisy_gray_board(height, width).convert("RGBA")

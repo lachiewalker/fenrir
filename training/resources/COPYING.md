@@ -15,11 +15,12 @@ assets with no licence. Add a row here for every new asset, with its source.
 | `svg/rhosgfx` | RhosGFX | [rhosgfx.itch.io](https://rhosgfx.itch.io/) | CC0 1.0 |
 | `svg/kiwen-suwi` | neverRare | [kiwen-suwi](https://github.com/neverRare) | CC BY 4.0 |
 | `svg/firi` | James Faure | [Firi-pieceset](https://github.com/jfaure/Firi-pieceset) | CC BY 4.0 |
-| `svg/cburnett` | Colin M.L. Burnett | [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) (`Chess_*t45.svg`) | CC BY-SA 3.0 |
+| `svg/cburnett` | Colin M.L. Burnett | [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) (`Chess_*t45.svg`) | BSD-3-Clause (the author offers GFDL, BSD or GPL) |
 | `other/chess_1Kbyte_gambit`, `other/chess_kaneo`, `other/chess_kaneo_midnight`, `other/chess_maestro_bw` | Ka-hu | [chess-pieces](https://github.com/Ka-hu/chess-pieces) | CC BY 4.0 |
 
 The Cburnett set is also in Lichess under GPLv2+. FENrir uses the Wikimedia
-Commons copy under CC BY-SA 3.0.
+Commons copy under the BSD licence, as druidschess does. The text is in
+`svg/cburnett/LICENSE.txt`.
 
 ## Board themes (`board_themes/chess/`)
 
