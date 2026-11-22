@@ -19,24 +19,20 @@ classifiers = [
 dependencies = [
   "Pillow",
   "numpy",
-  "matplotlib",
   "scikit-image",
-  "tqdm",
-  "pyffish",
-  "cairosvg",
-  "pyfastnoiselite",
-  "gdown",
   "opencv-python>=4.13.0.92",
+  "onnxruntime>=1.18",
 ]
 
 [project.optional-dependencies]
-# PyTorch backend — pick exactly one when running uv sync:
-#   uv sync --extra cpu     → CPU (works everywhere, no GPU required)
-#   uv sync --extra cuda    → CUDA 12.8  (NVIDIA GPUs)
-#   uv sync --extra rocm    → ROCm 6.4   (AMD GPUs, Linux only)
-cpu  = ["torch", "torchvision"]
-cuda = ["torch", "torchvision"]
-rocm = ["torch", "torchvision", "pytorch-triton-rocm"]
+# Training only — not needed for inference.
+# Pick exactly one when running uv sync for training:
+#   uv sync --extra train-cpu    → CPU
+#   uv sync --extra train-cuda   → CUDA 12.8  (NVIDIA GPUs)
+#   uv sync --extra train-rocm   → ROCm 6.4   (AMD GPUs, Linux only)
+train-cpu  = ["torch", "torchvision", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-cuda = ["torch", "torchvision", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-rocm = ["torch", "torchvision", "pytorch-triton-rocm", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
 
 [project.urls]
 Homepage = "https://github.com/tsoj/Chess_diagram_to_FEN"
@@ -45,25 +41,25 @@ Issues = "https://github.com/tsoj/Chess_diagram_to_FEN/issues"
 [tool.uv]
 conflicts = [
   [
-    { extra = "cpu" },
-    { extra = "cuda" },
-    { extra = "rocm" },
+    { extra = "train-cpu" },
+    { extra = "train-cuda" },
+    { extra = "train-rocm" },
   ],
 ]
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cpu",  extra = "cpu" },
-  { index = "pytorch-cuda", extra = "cuda" },
-  { index = "pytorch-rocm", extra = "rocm" },
+  { index = "pytorch-cpu",  extra = "train-cpu" },
+  { index = "pytorch-cuda", extra = "train-cuda" },
+  { index = "pytorch-rocm", extra = "train-rocm" },
 ]
 torchvision = [
-  { index = "pytorch-cpu",  extra = "cpu" },
-  { index = "pytorch-cuda", extra = "cuda" },
-  { index = "pytorch-rocm", extra = "rocm" },
+  { index = "pytorch-cpu",  extra = "train-cpu" },
+  { index = "pytorch-cuda", extra = "train-cuda" },
+  { index = "pytorch-rocm", extra = "train-rocm" },
 ]
 pytorch-triton-rocm = [
-  { index = "pytorch-rocm", extra = "rocm" },
+  { index = "pytorch-rocm", extra = "train-rocm" },
 ]
 
 [[tool.uv.index]]

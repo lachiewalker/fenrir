@@ -1,10 +1,26 @@
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import torch
 from PIL import Image, ImageDraw
-from torchvision.transforms import v2
+
+try:
+    import torch
+    from torchvision.transforms import v2
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
+
+
+def _require_torch():
+    if not _TORCH_AVAILABLE:
+        raise RuntimeError(
+            "This function requires torch and torchvision (training dependencies). "
+            "Install with: uv sync --extra train-cpu"
+        )
+
 
 from src.games import CHESS, SHOGI, XIANGQI, GameSpec, get_game
 
@@ -46,6 +62,7 @@ class Position:
 
 
 def to_rgb_tensor(img):
+    _require_torch()
     if isinstance(img, Image.Image):
         img = v2.PILToTensor()(img)
 
@@ -62,54 +79,49 @@ def to_rgb_tensor(img):
     return img
 
 
-class MinMaxMeanNormalization(torch.nn.Module):
-    def forward(self, tensor):
-        min = tensor.min()
-        max = tensor.max()
-        if min >= max:
-            return torch.zeros_like(tensor)
-        tensor = (tensor - min) / (max - min)
-        tensor -= tensor.mean()
-        if torch.isnan(tensor).any():
-            print("WARNING: Encountered NaN in input for MinMaxMeanNormalization")
-            tensor = torch.zeros_like(tensor)
-        assert tensor.mean().abs() < 0.0001, tensor.mean()
-        assert 0.0 <= tensor.max() <= 1.0
-        assert -1.0 <= tensor.min() <= 0.0
-        return tensor
+if _TORCH_AVAILABLE:
+    class MinMaxMeanNormalization(torch.nn.Module):
+        def forward(self, tensor):
+            min = tensor.min()
+            max = tensor.max()
+            if min >= max:
+                return torch.zeros_like(tensor)
+            tensor = (tensor - min) / (max - min)
+            tensor -= tensor.mean()
+            if torch.isnan(tensor).any():
+                print("WARNING: Encountered NaN in input for MinMaxMeanNormalization")
+                tensor = torch.zeros_like(tensor)
+            assert tensor.mean().abs() < 0.0001, tensor.mean()
+            assert 0.0 <= tensor.max() <= 1.0
+            assert -1.0 <= tensor.min() <= 0.0
+            return tensor
 
+    class AddGaussianNoise(torch.nn.Module):
+        def __init__(self, mean=0.0, std=1.0, scale_to_input_range=False):
+            super().__init__()
+            self.std = std
+            self.mean = mean
+            self.scale_to_input_range = scale_to_input_range
 
-class AddGaussianNoise(torch.nn.Module):
-    def __init__(self, mean=0.0, std=1.0, scale_to_input_range=False):
-        super().__init__()
-        self.std = std
-        self.mean = mean
-        self.scale_to_input_range = scale_to_input_range
+        def forward(self, tensor):
+            std = self.std
+            mean = self.mean
+            if self.scale_to_input_range:
+                range = tensor.max() - tensor.min()
+                std *= range
+                mean *= range
+            return tensor + torch.randn_like(tensor) * std + mean
 
-    def forward(self, tensor):
-        std = self.std
-        mean = self.mean
-        if self.scale_to_input_range:
-            range = tensor.max() - tensor.min()
-            std *= range
-            mean *= range
-        return tensor + torch.randn_like(tensor) * std + mean
+    class RandomColorTint(torch.nn.Module):
+        def __init__(self, max_tint=0.2):
+            super().__init__()
+            self.max_tint = max_tint
 
-
-class RandomColorTint(torch.nn.Module):
-    def __init__(self, max_tint=0.2):
-        super().__init__()
-        self.max_tint = max_tint
-
-    def forward(self, x):
-
-        # per-channel uniform tint
-        tint = torch.empty(x.shape[0], device=x.device).uniform_(
-            -self.max_tint, self.max_tint
-        )[:, None, None]
-
-        # shift around midpoint so white is affected
-        return (x - 0.5 + tint + 0.5).clamp(0.0, 1.0)
+        def forward(self, x):
+            tint = torch.empty(x.shape[0], device=x.device).uniform_(
+                -self.max_tint, self.max_tint
+            )[:, None, None]
+            return (x - 0.5 + tint + 0.5).clamp(0.0, 1.0)
 
 
 def pad(img: Image.Image, x, y):
@@ -264,6 +276,7 @@ def grid_to_piece_placement(grid: list[str | None], game: str | GameSpec) -> str
 
 
 def grid_to_tensor(grid: list[str | None], game: str | GameSpec) -> torch.Tensor:
+    _require_torch()
     spec = get_game(game)
     if len(grid) != spec.num_squares:
         raise ValueError(
@@ -285,6 +298,7 @@ def grid_to_tensor(grid: list[str | None], game: str | GameSpec) -> torch.Tensor
 
 
 def tensor_to_grid(tensor: torch.Tensor, game: str | GameSpec) -> list[str | None]:
+    _require_torch()
     spec = get_game(game)
     expected_shape = [spec.num_squares, len(spec.piece_symbols) + 1]
     if list(tensor.shape) != expected_shape:
@@ -303,6 +317,7 @@ def tensor_to_grid(tensor: torch.Tensor, game: str | GameSpec) -> list[str | Non
 
 
 def flip_color_tensor(tensor: torch.Tensor, game: str | GameSpec) -> torch.Tensor:
+    _require_torch()
     spec = get_game(game)
     expected_shape = [spec.num_squares, len(spec.piece_symbols) + 1]
     if list(tensor.shape) != expected_shape:
@@ -317,6 +332,7 @@ def flip_color_tensor(tensor: torch.Tensor, game: str | GameSpec) -> torch.Tenso
 
 
 def rotate_tensor_180(tensor: torch.Tensor, game: str | GameSpec) -> torch.Tensor:
+    _require_torch()
     spec = get_game(game)
     expected_shape = [spec.num_squares, len(spec.piece_symbols) + 1]
     if list(tensor.shape) != expected_shape:
@@ -358,6 +374,7 @@ def position_from_notation(notation: str, game: str | GameSpec) -> Position | No
 
 
 def position_to_tensor(position: Position) -> torch.Tensor:
+    _require_torch()
     grid = parse_piece_placement(position.piece_placement, position.game)
     return grid_to_tensor(grid, position.game)
 
