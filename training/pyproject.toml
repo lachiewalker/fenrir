@@ -1,15 +1,10 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
-name = "Chess_diagram_to_FEN"
+name = "fenrir-training"
 version = "0.0.1"
 authors = [
   { name="Jost Triller", email="tsoj.tsoj@gmx.de" },
 ]
-description = "Convert images of chess diagrams into FENs"
-readme = "README.md"
+description = "Training and export for the FENrir chess diagram models"
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -30,15 +25,16 @@ dependencies = [
 #   uv sync --extra train-cpu    → CPU
 #   uv sync --extra train-cuda   → CUDA 12.8  (NVIDIA GPUs)
 #   uv sync --extra train-rocm   → ROCm 6.4   (AMD GPUs, Linux only)
-train-cpu  = ["torch", "torchvision", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
-train-cuda = ["torch", "torchvision", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
-train-rocm = ["torch", "torchvision", "pytorch-triton-rocm", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-cpu  = ["torch", "torchvision", "onnx", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-cuda = ["torch", "torchvision", "onnx", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-rocm = ["torch", "torchvision", "onnx", "pytorch-triton-rocm", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
 
 [project.urls]
-Homepage = "https://github.com/tsoj/Chess_diagram_to_FEN"
-Issues = "https://github.com/tsoj/Chess_diagram_to_FEN/issues"
+Homepage = "https://github.com/lachiewalker/fenrir"
+Upstream = "https://github.com/tsoj/Chess_diagram_to_FEN"
 
 [tool.uv]
+package = false
 conflicts = [
   [
     { extra = "train-cpu" },

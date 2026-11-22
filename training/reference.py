@@ -16,6 +16,7 @@ from src import common, consts
 from src.bounding_box.inference import get_all_quads, mask_to_corners
 from src.games import GAMES, get_game
 from src.ort_inference import (
+    has_model,
     check_existence,
     classify_orientation,
     classify_rotation,
@@ -153,7 +154,7 @@ def get_fen(
     spec = get_game(game)
     img = img.convert("RGB")
 
-    if not check_existence(img, spec.key):
+    if has_model("existence") and not check_existence(img, spec.key):
         return None
 
     result = FenResult()

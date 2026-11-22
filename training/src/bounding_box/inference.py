@@ -9,12 +9,12 @@ from src import consts
 def _order_corners_tl_tr_br_bl(pts: np.ndarray) -> np.ndarray:
     """Sort 4 points into TL, TR, BR, BL order."""
     s = pts.sum(axis=1)
-    d = np.diff(pts, axis=1).ravel()
+    d = np.diff(pts, axis=1).ravel()  # y - x
     return np.array([
-        pts[d.argmax()],   # TR
-        pts[s.argmin()],   # TL
-        pts[d.argmin()],   # BL
-        pts[s.argmax()],   # BR
+        pts[s.argmin()],
+        pts[d.argmin()],
+        pts[s.argmax()],
+        pts[d.argmax()],
     ], dtype=np.float32)
 
 

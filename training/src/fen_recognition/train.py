@@ -52,7 +52,7 @@ TEST_ACC_FREQ = 4000
 def train(
     game: str,
     outdir="models",
-    total_steps=150_000,
+    total_steps=int(os.environ.get("FENRIR_STEPS", 150_000)),
     batch_size=8,
     max_lr=0.00008,
     test_set_size=2000,
@@ -143,7 +143,9 @@ def train(
 
             if test_acc > best_acc:
                 best_acc = test_acc
-                best_model = model.state_dict()
+                best_model = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+                os.makedirs(os.path.join(outdir, spec.key), exist_ok=True)
+                torch.save(best_model, os.path.join(outdir, spec.key, "position_best_so_far.pth"))
                 tqdm.write(f"Best model updated: Test Acc: {best_acc:.3f}")
 
         if num_steps >= total_steps:

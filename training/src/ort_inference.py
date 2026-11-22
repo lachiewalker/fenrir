@@ -13,14 +13,20 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-_SCRIPT_DIR = Path(__file__).parent.parent
+import os
+
+_MODELS_DIR = Path(os.environ.get("FENRIR_MODELS", Path(__file__).parent.parent.parent / "build" / "models"))
 _SESSIONS: dict[str, ort.InferenceSession] = {}
 
 
+def has_model(name: str) -> bool:
+    return (_MODELS_DIR / f"{name}.onnx").exists()
+
+
 def _session(game: str, name: str) -> ort.InferenceSession:
-    key = f"{game}/{name}"
+    key = name
     if key not in _SESSIONS:
-        path = _SCRIPT_DIR / "models" / game / f"{name}.onnx"
+        path = _MODELS_DIR / f"{name}.onnx"
         if not path.exists():
             raise FileNotFoundError(
                 f"ONNX model not found: {path}\n"
@@ -100,7 +106,7 @@ def classify_rotation(img, game: str) -> int:
     """Return rotation index (0-3 → 0°/90°/180°/270°)."""
     from src.consts import BOARD_PIXEL_WIDTH
     x = _prep_full_image(img, BOARD_PIXEL_WIDTH, mean_sub=True)
-    logits = _session(game, "image_rotation").run(None, {"image": x})[0]  # [1,4]
+    logits = _session(game, "rotation").run(None, {"image": x})[0]  # [1,4]
     return int(np.argmax(logits[0]))
 
 
@@ -124,7 +130,7 @@ def recognize_position(img, game: str):
         return None
 
     x = arr[np.newaxis].astype(np.float32)
-    logits = _session(game, "position").run(None, {"board_image": x})[0]  # [1,64,ch]
+    logits = _session(game, "position").run(None, {"board": x})[0]  # [1,64,ch]
     logits = np.clip(logits[0], 0, 1)  # [64, ch]
 
     indices = np.argmax(logits, axis=1)
@@ -161,7 +167,7 @@ def classify_orientation(position, game: str, no_rotate_bias: float | None = Non
         idx = piece_to_idx.get(piece, empty_idx) if piece else empty_idx
         arr[0, sq, idx] = 1.0
 
-    logit = _session(game, "orientation").run(None, {"board_tensor": arr})[0]
+    logit = _session(game, "orientation").run(None, {"squares": arr})[0]
     return float(logit.flat[0]) - no_rotate_bias > 0.5
 
 

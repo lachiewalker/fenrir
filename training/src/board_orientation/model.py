@@ -35,9 +35,9 @@ class OrientationModel(nn.Module):
     def forward(self, x):
         batch = x.size(0)
         # x: [batch, num_squares, channels] -> [batch, channels, rows, cols]
-        x = x.view(batch, self.board_rows, self.board_cols, -1)
+        x = x.reshape(batch, self.board_rows, self.board_cols, -1)
         x = x.permute(0, 3, 1, 2)
         x = self.conv(x)
-        x = x.view(batch, -1)
+        x = torch.flatten(x, 1)
         x = self.head(x)
         return x

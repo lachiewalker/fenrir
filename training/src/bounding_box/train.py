@@ -131,7 +131,7 @@ TEST_ACC_FREQ = 2000
 def train(
     game: str,
     outdir="models",
-    total_steps=150_000,
+    total_steps=int(os.environ.get("FENRIR_STEPS", 150_000)),
     batch_size=16,
     max_lr=0.0003,
     test_set_size=2000,
@@ -210,7 +210,9 @@ def train(
 
             if quad_iou > best_iou:
                 best_iou = quad_iou
-                best_model = model.state_dict()
+                best_model = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+                os.makedirs(os.path.join(outdir, game), exist_ok=True)
+                torch.save(best_model, os.path.join(outdir, game, "quad_best_so_far.pth"))
                 tqdm.write(f"Best model updated: Quad IoU: {best_iou:.3f}")
 
         if num_steps >= total_steps:
