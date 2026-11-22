@@ -58,7 +58,7 @@ def train(
     batch_size=8,
     max_lr=0.00008,
     test_set_size=2000,
-    checkpoint=None,
+    checkpoint=os.environ.get("FENRIR_CHECKPOINT"),
     tile_size: int = consts.DEFAULT_TILE_SIZE,
 ):
     spec = get_game(game)
