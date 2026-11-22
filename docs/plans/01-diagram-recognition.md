@@ -156,8 +156,29 @@ perspective warp. Check the licence of each crate before it is added.
   several epochs.
 - **Assets added:** plain and hatched two-tone boards drawn in code, and the
   Cburnett pieces from Wikimedia Commons under BSD.
-- **Size:** with MobileNetV3, the float32 model set is about 64 MB. f16
-  weights are still to do.
+- **Size:** `shrink.py` stores large weights as float16. Upstream's models
+  score the same after it.
+- **Retraining (on a two-GPU server, logged to MLflow):** on the 41 real
+  test images, with the new quad and rotation models and upstream's
+  orientation model:
+
+  | Position backbone | Data | Boards right | Squares right |
+  |---|---|---|---|
+  | Upstream ConvNeXt-Tiny | upstream's | 36 | 97.2 % |
+  | ConvNeXt-Tiny | round 1 | 29 | 96.0 % |
+  | ConvNeXt-Tiny | round 2 (fine-tuned) | 29 | 96.2 % |
+  | MobileNetV3 | round 1 | 26 | 95.7 % |
+  | EfficientNet-B0 | round 1 | 25 | 95.8 % |
+  | EfficientNet-B0 | round 2 (fine-tuned) | 25 | 95.8 % |
+
+  The new quad model with upstream's position model scores 35, and the new
+  rotation model scores 36, so both are ready. Round 2 adds dithered
+  boards, low resolution and JPEG artefacts. It did not help. The misses
+  are old book fonts and screen styles that no permitted piece set looks
+  like: FENrir has 19 sets, and upstream trained on about 100.
+- **Next:** more permitted piece designs, for example the chess glyphs of
+  permissive fonts (DejaVu, Noto Sans Symbols 2) and more Wikimedia Commons
+  sets. Then retrain position.
 
 ## Revisit when
 
