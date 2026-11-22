@@ -25,9 +25,9 @@ dependencies = [
 #   uv sync --extra train-cpu    → CPU
 #   uv sync --extra train-cuda   → CUDA 12.8  (NVIDIA GPUs)
 #   uv sync --extra train-rocm   → ROCm 6.4   (AMD GPUs, Linux only)
-train-cpu  = ["torch", "torchvision", "onnx", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
-train-cuda = ["torch", "torchvision", "onnx", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
-train-rocm = ["torch", "torchvision", "onnx", "pytorch-triton-rocm", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-cpu  = ["torch", "torchvision", "onnx", "mlflow-skinny", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-cuda = ["torch", "torchvision", "onnx", "mlflow-skinny", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
+train-rocm = ["torch", "torchvision", "onnx", "mlflow-skinny", "pytorch-triton-rocm", "matplotlib", "tqdm", "pyffish", "cairosvg", "pyfastnoiselite", "gdown"]
 
 [project.urls]
 Homepage = "https://github.com/lachiewalker/fenrir"

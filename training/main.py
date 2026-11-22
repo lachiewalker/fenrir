@@ -90,4 +90,15 @@ if __name__ == "__main__":
     if "model_file" in sig.parameters and args.model_path is not None:
         kwargs["model_file"] = args.model_path
 
+    end = None
+    if args.function == TRAIN:
+        from pathlib import Path
+
+        from src.tracking import start
+
+        params = {k: v for k, v in os.environ.items() if k.startswith("FENRIR_")}
+        params["task"] = args.model
+        end = start(args.model, params)
     fn(**kwargs)
+    if end:
+        end(Path("models"))
