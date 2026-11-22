@@ -1,0 +1,16 @@
+[package]
+name = "fenrir-cli"
+description = "Prints the FEN of the chess diagram in an image"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[[bin]]
+name = "fenrir"
+path = "src/main.rs"
+
+[dependencies]
+fenrir-chess = { path = "../fenrir" }
