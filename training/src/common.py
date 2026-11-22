@@ -112,6 +112,26 @@ if _TORCH_AVAILABLE:
                 mean *= range
             return tensor + torch.randn_like(tensor) * std + mean
 
+    class Degrade(torch.nn.Module):
+        """Low resolution and JPEG artefacts, as in old scans and screenshots."""
+
+        def forward(self, img):
+            import random as _random
+
+            import torch.nn.functional as F
+
+            _, h, w = img.shape
+            factor = _random.uniform(1.5, 5.0)
+            small = (max(8, int(h / factor)), max(8, int(w / factor)))
+            down = _random.choice(["area", "bilinear", "nearest"])
+            up = _random.choice(["bilinear", "nearest", "bicubic"])
+            x = F.interpolate(img.unsqueeze(0), size=small, mode=down)
+            x = F.interpolate(x, size=(h, w), mode=up).squeeze(0).clamp(0, 1)
+            if _random.random() < 0.6:
+                u8 = (x * 255).round().to(torch.uint8)
+                x = v2.JPEG(quality=(10, 70))(u8).float() / 255.0
+            return x
+
     class RandomColorTint(torch.nn.Module):
         def __init__(self, max_tint=0.2):
             super().__init__()

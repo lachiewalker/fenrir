@@ -19,6 +19,7 @@ default_transforms = torch.nn.Sequential(
 )
 
 augment_transforms = torch.nn.Sequential(
+    v2.RandomApply([common.Degrade()], p=0.35),
     v2.RandomApply(
         [common.AddGaussianNoise(std=0.1, scale_to_input_range=True)], p=0.4
     ),

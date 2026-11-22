@@ -50,7 +50,18 @@ _CLASSIC_COLOURS = [
 ]
 
 
-def _checker_board(board_h: int, board_w: int, hatched: bool) -> Image.Image:
+_BAYER = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16.0
+
+
+def _dither_tile(w: int, h: int, level: float, dot: int, ink, paper) -> Image.Image:
+    """A square printed as a dot pattern, as in old book diagrams."""
+    ys, xs = np.mgrid[0:h, 0:w]
+    mask = _BAYER[(ys // dot) % 4, (xs // dot) % 4] < level
+    arr = np.where(mask[..., None], np.array(ink, np.uint8), np.array(paper, np.uint8))
+    return Image.fromarray(arr.astype(np.uint8), "RGB")
+
+
+def _checker_board(board_h: int, board_w: int, hatched: bool, dithered: bool = False) -> Image.Image:
     """A two-tone board. Hatched boards draw the dark squares with lines, as
     many books print them."""
     if hatched:
@@ -65,6 +76,10 @@ def _checker_board(board_h: int, board_w: int, hatched: bool) -> Image.Image:
     draw = ImageDraw.Draw(img)
     sq_w, sq_h = board_w / 8, board_h / 8
     ink = (random.randint(0, 90),) * 3
+    level = random.uniform(0.25, 0.75)
+    dot = random.randint(1, 3)
+    if dithered:
+        light = (random.randint(220, 255),) * 3
     spacing = random.randint(3, 9)
     width = random.choice([1, 1, 2])
     slope = random.choice([1, -1])
@@ -75,7 +90,9 @@ def _checker_board(board_h: int, board_w: int, hatched: bool) -> Image.Image:
             x0, y0 = int(c * sq_w), int(r * sq_h)
             x1, y1 = int((c + 1) * sq_w), int((r + 1) * sq_h)
             draw.rectangle((x0, y0, x1 - 1, y1 - 1), fill=dark)
-            if hatched:
+            if dithered:
+                img.paste(_dither_tile(x1 - x0, y1 - y0, level, dot, ink, light), (x0, y0))
+            elif hatched:
                 tile = Image.new("RGB", (x1 - x0, y1 - y0), dark)
                 tdraw = ImageDraw.Draw(tile)
                 size = (x1 - x0) + (y1 - y0)
@@ -645,10 +662,13 @@ class BoardGenerator:
             ["uniform", "noise_gray", "noise_color"]
             + 4 * ["checker"]
             + 3 * ["hatched"]
+            + 2 * ["dithered"]
             + 4 * (["disk"] if self.disk_themes else [])
         )
-        if theme_choice in ("checker", "hatched"):
-            bg = _checker_board(height, width, hatched=theme_choice == "hatched")
+        if theme_choice in ("checker", "hatched", "dithered"):
+            bg = _checker_board(
+                height, width, hatched=theme_choice == "hatched", dithered=theme_choice == "dithered"
+            )
         elif theme_choice == "uniform":
             bg = _random_uniform_board(height, width)
         elif theme_choice == "noise_gray":

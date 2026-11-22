@@ -9,13 +9,16 @@ TILE_EMBED_DIM = 512
 FULL_EMBED_DIM = 512
 
 
-BACKBONES = ("convnext_tiny", "mobilenet_v3_large")
+BACKBONES = ("convnext_tiny", "mobilenet_v3_large", "efficientnet_b0")
 
 
 def _embedding_model(backbone: str, embed_dim: int) -> nn.Module:
     if backbone == "convnext_tiny":
         result = models.convnext_tiny(weights=models.ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
         features = 768
+    elif backbone == "efficientnet_b0":
+        result = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1)
+        features = 1280
     elif backbone == "mobilenet_v3_large":
         result = models.mobilenet_v3_large(weights=models.MobileNet_V3_Large_Weights.IMAGENET1K_V2)
         features = 960

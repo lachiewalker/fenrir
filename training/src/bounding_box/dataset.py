@@ -41,6 +41,7 @@ def _rotate_corners(
     return [transform(*corners[i]) for i in reorder]
 
 augment_transforms = torch.nn.Sequential(
+    v2.RandomApply([common.Degrade()], p=0.35),
     v2.RandomInvert(p=0.1),
     v2.RandomApply([AddGaussianNoise(std=0.1, scale_to_input_range=True)], p=0.4),
     v2.RandomGrayscale(p=0.4),

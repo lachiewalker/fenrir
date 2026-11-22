@@ -92,7 +92,7 @@ def train(
     )
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, drop_last=True)
 
-    model = BoardRec(game=spec.key, tile_size=tile_size)
+    model = BoardRec(game=spec.key, tile_size=tile_size, backbone=os.environ.get("FENRIR_BACKBONE", "mobilenet_v3_large"))
     if checkpoint is not None:
         model.load_state_dict(torch.load(checkpoint, map_location=torch.device("cpu")))
         print("Using checkpoint:", checkpoint)
